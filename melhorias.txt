@@ -1,0 +1,3 @@
+O flask apenas slava no banco os parametros recebidos pelo telegram
+
+Criar outra função que ficará responsavel por efetuar as transações ou negociar e avisar pelo telegra o que foi feito.
