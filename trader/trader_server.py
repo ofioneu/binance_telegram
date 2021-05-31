@@ -1,4 +1,4 @@
-#from flask import Flask, request, Blueprint
+from flask import Flask, request, Blueprint
 #from flask.helpers import stream_with_context
 import requests
 import sqlite3
@@ -6,66 +6,95 @@ import asyncio
 import configparser
 from binance.enums import *
 from binance import AsyncClient
+from binance import Client
 import json
+from trader.RSI import rsi_return
+from trader.KDJ import kdj
 
+#config
 config = configparser.ConfigParser()
 config.read('C:/Users/HP/Desktop/Dev/Binance_telegran/config.ini')
-
 api_key = config['BINACE_API']['api_key']
 api_secret = config['BINACE_API']['secret_key']
 
-#trader_server = Blueprint('trader_server', __name__)
 
-async def teste(client):
-    info = await client.get_account()
-    print(json.dumps(info, indent= 2))
+#blueprint
+trader_server_blueprint = Blueprint('trader_server_blueprint', __name__)
 
-#função que pegará o retorno dos modulos do trader e salvar no banco para outra função fazer os cauculos
-'''@trader_server.route('/trader_server', methods=['GET', 'POST'])
-def trader_server():
-    pass'''
+#*********Rotas que retornam valores do trader ou da exchenge***************
 
+#retorna os valores dos indicadores
+@trader_server_blueprint.route('/trader_server/indicador/', methods=['GET', 'POST'])
+def indicador():
+    with open('C:/Users/HP/Desktop/Dev/Binance_telegran/telegram/moeda.txt', 'r') as cmd_bot:
+            flag_moeda=cmd_bot.readline()
+            moeda = flag_moeda.replace('BRL','/BRL')
+    rsi = rsi_return()
+    kdj_var = kdj(moeda,'1h')
+    data={
+        "rsi": rsi,
+        'kdj_var' : kdj_var
+        }          
+    return json.dumps(data)
 
-async def main():
-    client = await AsyncClient.create()  
-    #a= await client.ping()
+#_______________________________________________________________________________________________
 
-    #await teste(client) #ok
-    #status = await client.get_account_status() # funciona no arquivo teste, é sincrono
-    #tickers = await client.get_ticker() #0k
-    #time_res = await client.get_server_time() #ok
-    #status = await client.get_system_status()# ok
-    #info =  await client.get_exchange_info()#ok
-    #info = await client.get_symbol_info('ETHBRL')#ok
-    info = await client.get_all_tickers(symbol='ETHBRL') #ok, vou usar retorna uma lista// traz o preco atual da moeda
-    #info = client.get_account_snapshot(type='SPOT')
-    #products =  await client.get_products() #ok
-    #depth = await client.get_order_book(symbol='BTCBRL')#ok, posso usar no futuro
-    #trades = await client.get_recent_trades(symbol='BTCBRL') #ok
-    #avg_price = await client.get_avg_price(symbol='ETHBRL') #ok
-
-    #info = await client.get_account()
-    #print(info)
-    
-
-    print(json.dumps(info, indent= 2))
-    
-
+#Retona o valor atual da moeda
+@trader_server_blueprint.route('/trader_server/moeda/<string:param>', methods=['GET', 'POST'])
+async def moeda_price(param):
+    moeda =  param.upper()
+    print(moeda)
+    client = await AsyncClient.create(api_key, api_secret)
+    info = await client.get_all_tickers(symbol=str(moeda))
+    print(info)
     await client.close_connection()
-
-if __name__ == "__main__":
-
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+    return info
 
 
+#retona um snapshot da conta
+@trader_server_blueprint.route('/trader_server/account/', methods=['GET', 'POST'])
+def account():
+    client = Client(api_key, api_secret)
+    info = client.get_account_snapshot(type='SPOT')
+    info_data = json.dumps(info['snapshotVos'][1])
+    print(info_data)
+    return info_data
     
-    
-  
+
+#retona um snapshot da as klines(falta desensvolver)
+@trader_server_blueprint.route('/trader_server/klines/<moeda>/<period>', methods=['GET', 'POST'])
+def klines(moeda,period):
+    print(moeda, period)
+    '''client = Client(api_key, api_secret)
+    klines = client.get_historical_klines("ETHBRL", Client.KLINE_INTERVAL_1DAY, "14 day ago UTC")
+    info_data = json.dumps(info['snapshotVos'][1])
+    print(info_data)
+    return info_data'''
 
 
-#print(order(symbol, side, type, timeInForce, quantity, price))
+@trader_server_blueprint.route('/trader_server/get_register_coin/', methods=['GET', 'POST'])
+def get_register_coin():
+    with open('C:/Users/HP/Desktop/Dev/Binance_telegran/telegram/moeda.txt', 'r') as cmd_bot:
+        flag_moeda=cmd_bot.readline()
+        print('flag_moeda', flag_moeda)
+        response = {"flag_moeda": flag_moeda}
+    return json.dumps(response)
+
+@trader_server_blueprint.route('/trader_server/get_register_comand_bot/', methods=['GET', 'POST'])
+def get_register_comand_bot():
+    with open('C:/Users/HP/Desktop/Dev/Binance_telegran/telegram/comand_bot.txt', 'r') as cmd_bot:
+        flag_cmd=cmd_bot.readline()
+        print('falg_cmd: ', flag_cmd)
+        response = {"flag_cmd": flag_cmd}
+    return  json.dumps(response)
     
+
+'''@trader_server_blueprint.route('/trader_server/klines/', methods=['GET', 'POST'])
+def get_register_comand_bot():
+
+    print('falg_cmd: ', flag_cmd)
+    response = {"flag_cmd": flag_cmd}
+    return json.dumps(response)'''
 
 
 
