@@ -2,6 +2,8 @@ import configparser
 from binance.enums import *
 from binance import Client
 import datetime
+import requests
+import json
 
 config = configparser.ConfigParser()
 config.read('C:/Users/HP/Desktop/Dev/Binance_telegran/config.ini')
@@ -11,10 +13,26 @@ api_secret = config['BINACE_API']['secret_key']
 
 client = Client(api_key, api_secret)
 
+try:
+    secret = (config['taapi_io']['secret_key'])
+except Exception as e:
+    print(e)
+
 def rsi_return():
-    with open('C:/Users/HP/Desktop/Dev/Binance_telegran/telegram/moeda.txt', 'r') as cmd_bot:
-        moeda=cmd_bot.readline()       
-    klines = client.get_historical_klines(moeda, Client.KLINE_INTERVAL_1HOUR, "14 day ago UTC")#precisa deixar a moeda editável aqui
+    with open('C:/Users/HP/Desktop/Dev/Binance_telegran/telegram/moeda.txt', 'r') as flag_moeda:
+        moeda_=flag_moeda.readline()
+        moeda = moeda_.replace('BRL','/BRL')
+    endpoint= 'https://api.taapi.io/rsi'
+    parameters = {
+            'secret': secret,
+            'exchange': 'binance',
+            'symbol': moeda,
+            'interval': '1h',
+            }
+    
+    rsi_= requests.get(endpoint, params=parameters)
+    rsi=rsi_.json()
+    '''klines = client.get_historical_klines(moeda, Client.KLINE_INTERVAL_1HOUR, "14 day ago UTC")#precisa deixar a moeda editável aqui
     opened=[]
     closed=[]
     tamanho_klines = len(klines)
@@ -47,13 +65,10 @@ def rsi_return():
     def mid(vet):
         return sum(vet)/len(vet)
 
-    
-    print('len_vp: ', len(vp))
-
     #***Não suavizado***
-    '''mid_vp = mid(vp)
+    mid_vp = mid(vp)
     mid_vn = mid(vn) 
-    fr = mid_vp/abs(mid_vn)'''
+    fr = mid_vp/abs(mid_vn)
     
     #_____Suavizado____
     len_vp = len(vp)
@@ -68,9 +83,12 @@ def rsi_return():
     
 
     rsi = 100 -(100/(1+fr))
-    rsi_around = round(rsi, 2)
+    rsi_around = round(rsi, 2)'''
 
-    return rsi_around
+    #return rsi_around
+    #print(rsi)
+
+    return rsi
 
 
 

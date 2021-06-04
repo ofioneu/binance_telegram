@@ -1,0 +1,5 @@
+2021-06-03 17:02:20,861 WARNING root MainThread : Opps!: ('Connection aborted.', ConnectionResetError(10054, 'Foi forçado o cancelamento de uma conexão existente pelo host remoto', None, 10054, None))
+2021-06-03 17:02:27,338 INFO root MainThread : TraderBot iniciado!
+2021-06-03 18:56:31,757 WARNING root MainThread : Opps!: Expecting value: line 1 column 1 (char 0)
+2021-06-03 19:50:50,266 WARNING root MainThread : Opps!: Expecting value: line 1 column 1 (char 0)
+2021-06-03 19:50:50,548 WARNING root MainThread : Opps!: Expecting value: line 1 column 1 (char 0)

@@ -1,0 +1,7 @@
+INFO:root:Trader server iniciado!
+INFO:root:Trader server iniciado!
+INFO:root:Trader server iniciado!
+INFO:root:Trader server iniciado!
+ERROR:root:Não foi possível receber as informaçoes de rsi da função rsi_retun: Expecting value: line 1 column 1 (char 0)
+ERROR:root:Não foi possível receber as informaçoes de rsi da função rsi_retun: HTTPSConnectionPool(host='api.taapi.io', port=443): Max retries exceeded with url: /rsi?secret=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZtZmFiaW8uMDk5MUB5YWhvby5jb20uYnIiLCJpYXQiOjE2MjIzNDY0MTMsImV4cCI6NzkyOTU0NjQxM30.UVymwnHlTBWZmteJgi1N2Z2DzFBthoqfgyx9iCGs6Fo&exchange=binance&symbol=DOGE%2FBRL&interval=1h (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000001BEC94CFC40>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))
+ERROR:root:Não foi possível receber as informaçoes de rsi da função rsi_retun: HTTPSConnectionPool(host='api.taapi.io', port=443): Max retries exceeded with url: /rsi?secret=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZtZmFiaW8uMDk5MUB5YWhvby5jb20uYnIiLCJpYXQiOjE2MjIzNDY0MTMsImV4cCI6NzkyOTU0NjQxM30.UVymwnHlTBWZmteJgi1N2Z2DzFBthoqfgyx9iCGs6Fo&exchange=binance&symbol=DOGE%2FBRL&interval=1h (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x000001BEC94CB040>: Failed to establish a new connection: [Errno 11001] getaddrinfo failed'))

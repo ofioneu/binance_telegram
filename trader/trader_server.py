@@ -8,11 +8,19 @@ from binance.enums import *
 from binance import AsyncClient
 from binance import Client
 import json
+import logging
+#from logging.config import fileConfig
 from trader.RSI import rsi_return
 from trader.KDJ import kdj
 
 #config
-config = configparser.ConfigParser()
+#fileConfig('./log/logging.cfg')#Le as configurações de log
+log = logging.getLogger('werkzeug')
+log.disabled = True
+
+logging.basicConfig(filename='./log/trader_server.log', encoding='utf-8', level=logging.INFO)
+
+config = configparser.ConfigParser()#le as configurações de API's
 config.read('C:/Users/HP/Desktop/Dev/Binance_telegran/config.ini')
 api_key = config['BINACE_API']['api_key']
 api_secret = config['BINACE_API']['secret_key']
@@ -23,19 +31,55 @@ trader_server_blueprint = Blueprint('trader_server_blueprint', __name__)
 
 #*********Rotas que retornam valores do trader ou da exchenge***************
 
+
+logging.info('Trader server iniciado!')
+@trader_server_blueprint.route('/', methods=['GET'])
+def sinal():
+    return '', 200
+
 #retorna os valores dos indicadores
 @trader_server_blueprint.route('/trader_server/indicador/', methods=['GET', 'POST'])
 def indicador():
-    with open('C:/Users/HP/Desktop/Dev/Binance_telegran/telegram/moeda.txt', 'r') as cmd_bot:
-            flag_moeda=cmd_bot.readline()
-            moeda = flag_moeda.replace('BRL','/BRL')
-    rsi = rsi_return()
-    kdj_var = kdj(moeda,'1h')
-    data={
-        "rsi": rsi,
-        'kdj_var' : kdj_var
-        }          
-    return json.dumps(data)
+    try:
+        rsi = rsi_return() 
+        return json.dumps(rsi)
+    except Exception as e:
+        logging.error('Não foi possível receber as informaçoes de rsi da função rsi_retun: %s', e)
+
+    
+
+@trader_server_blueprint.route('/trader_server/indicador/kdj/<string:backtrack>', methods=['POST', 'GET'])
+def indicador_kdj(backtrack):
+    print('BACKTRACK STATUS: ', backtrack)
+    try:
+        with open('C:/Users/HP/Desktop/Dev/Binance_telegran/telegram/moeda.txt', 'r') as cmd_bot:
+                flag_moeda=cmd_bot.readline()
+                moeda = flag_moeda.replace('BRL','/BRL')
+    
+        print('MOEDA: ', moeda)
+        kdj_var = kdj(moeda,'1h', backtrack)
+    
+        def kdj_diff(n1,n2,n3):
+            vet = [n1, n2, n3]
+            vet.sort(reverse=True)
+            #print('vet: ', vet)
+            r1 = vet[0] - vet[1]
+            r2= vet[0] - vet[2]
+            r3= r1 + r2
+            return round(r3, 2)
+        
+        kdj_zero = kdj_diff(kdj_var['valueK'], kdj_var['valueD'], kdj_var['valueJ'])
+        data={
+            'kdj_var' : kdj_var,
+            'kdj_zero': kdj_zero
+            }          
+        return json.dumps(data)
+    except Exception as e:
+        logging.error('Não foi possível enviar as informaçoes solicitadas: %s', e)
+
+
+
+
 
 #_______________________________________________________________________________________________
 

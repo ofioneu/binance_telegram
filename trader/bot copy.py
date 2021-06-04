@@ -13,12 +13,12 @@ import threading
 import time
 from datetime import datetime
 import logging
-from logging.config import fileConfig
+#from logging.config import fileConfig
 
-fileConfig('../log/logging.cfg')
+#fileConfig('../log/logging.cfg')
 print("rodando bot...")
 
-#logging.basicConfig(filename='../log/bot.log', encoding='utf-8', level=logging.INFO, datefmt='%m/%d/%Y %I:%M:%S %p')
+logging.basicConfig(filename='../log/bot.log', encoding='utf-8', level=logging.INFO, datefmt='%m/%d/%Y %I:%M:%S %p')
 
 logging.info('TraderBot iniciado!')
 
@@ -34,9 +34,11 @@ url_get_register_comand_bot ='http://127.0.0.1:5000//trader_server/get_register_
 url_get_register_coin ='http://127.0.0.1:5000//trader_server/get_register_coin/'
 url_moeda = 'http://127.0.0.1:5000//trader_server/moeda/'
 url_indicador = 'http://127.0.0.1:5000//trader_server/indicador/'
-url_sinal = 'http://127.0.0.1:5000//'
 
 def main():
+    pass
+
+try:
     while True:
         flag_cmd_res =  requests.get(url_get_register_comand_bot) #bool true para iniciar bot ou false para não iniciar
         flag_cmd = flag_cmd_res.json() # var flag_cmd = comand bot
@@ -54,8 +56,7 @@ def main():
                     
 
                 indicador_rsi = requests.get(url_indicador) # to get insdicador rsi
-                rsi_ = indicador_rsi.json() # var rsi
-                rsi= round(rsi_['value'],2)
+                rsi = indicador_rsi.json() # var rsi
 
                 indicador_kdj = requests.get(url_indicador+'kdj/'+'False') #to get indicador kdj + kdj tendendo a zero
                 kdj = indicador_kdj.json() #var kdj
@@ -73,25 +74,29 @@ def main():
 
 #______________________ Registra o entrucamento do KDJ no ponto 0 _______________________
                     
-                if kdj_zero == 0 and (j >= 80 or j <= 20):
-                    logging.info('Kdj convergiu a 0')                        
+                if kdj_zero == 0:
+                    logging.info('Kdj convergiu a 0')
+                    
                     with open('kdj_flag.txt', 'w') as kdj_flag:                            
-                                kdj_flag.writelines('True')
+                        kdj_flag.writelines('True')
 
-    #_________________________________ Comeca o a analise ___________________________________   
+#_________________________________ Comeca o a analise ___________________________________   
 
                 with open('kdj_flag.txt', 'r') as kdj_file:
                     kdj_valor_true = kdj_file.read()
-                        
-                        
+                    
+                    
                 if rsi < 30 and kdj_valor_true == 'True':
                     logging.info('RSI < 30 E kdj_valor_true == True')
-                    kdj_backtrack= requests.get(url_indicador+'kdj/'+'True')
+                    kdj_backtrack=requests.get(url_indicador+'kdj/'+'True')
+
                     backtrack = kdj_backtrack.json()
+
                     kdj_var_backtrack = backtrack['kdj_var']
-                    k_backtrack = kdj_var_backtrack['valueK']
-                    d_backtrack = kdj_var_backtrack['valueD']
-                    j_backtrack = kdj_var_backtrack['valueJ']
+
+                    k_backtrack=kdj_var_backtrack['valueK']
+                    d_backtrack=kdj_var_backtrack['valueD']
+                    j_backtrack=kdj_var_backtrack['valueJ']
 
                     if k_backtrack < d and k > d:
                         logging.info('k_backtrack < D E K > D')
@@ -101,20 +106,22 @@ def main():
                         with open('logTrader.txt', 'a') as log:
                             local_dt = datetime.now()                            
                             log.writelines("{} --Compraria ao valor de: {} em um RSI: {}\n". format(local_dt, res_json['price'], rsi))
-                                    
+                            
                         with open('kdj_flag.txt', 'w') as kdj_signal:
                             kdj_signal.write('False')
                             logging.info('Setou o valor de kdj_flag.txt para False')
-                            
-                    if rsi > 80 and kdj_valor_true == 'True':
-                        logging.info('RSI > 80 E kdj_valor_true == True')
-                        kdj_backtrack=requests.get(url_indicador+'kdj/'+'True')
-                        backtrack = kdj_backtrack.json()
-                        kdj_var_backtrack = backtrack['kdj_var']
-                        k_backtrack=kdj_var_backtrack['valueK']
-                        d_backtrack=kdj_var_backtrack['valueD']
-                        j_backtrack=kdj_var_backtrack['valueJ']                   
-                            
+                    
+                if rsi > 80 and kdj_valor_true == 'True':
+                    logging.info('RSI > 80 E kdj_valor_true == True')
+                    kdj_backtrack=requests.get(url_indicador+'kdj/'+'True')
+                    backtrack = kdj_backtrack.json()
+
+                    kdj_var_backtrack = backtrack['kdj_var']
+
+                    k_backtrack=kdj_var_backtrack['valueK']
+                    d_backtrack=kdj_var_backtrack['valueD']
+                    j_backtrack=kdj_var_backtrack['valueJ']                   
+                        
                     if k_backtrack > d and k < d:
                         logging.info('k_backtrack > D E K < D')
                         res=requests.post(url_moeda+flag_moeda['flag_moeda'])
@@ -130,15 +137,10 @@ def main():
                 time.sleep(5)
             except Exception as e:
                 logging.warning('Opps!: %s', e)
-                print("Opss!: ", e)
+                print("Opss!: %s", e)
         time.sleep(10)
-    
-
-try:
-    main()
 except Exception as e:
-    logging.warning('Aguardando resposta do servidor!: %s', e)
-        
+    logging.warning('Opps!: %s', e)
 
 
 
